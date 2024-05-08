@@ -43,6 +43,6 @@ module.exports = {
             )
         ),
 	async execute(interaction) {
-		await interaction.reply(/*shoot(interaction.user.id, interaction.options.getInteger('token'), interaction.options.getString('target'))*/`${interaction.user.id} tried to shoot ${interaction.options.getString('target')} with ${interaction.options.getInteger('token')} <:pe:1217869006338396200>`);
+		await interaction.reply(shoot(interaction.user.id, interaction.options.getInteger('token'), interaction.options.getString('target')));
 	},
 };

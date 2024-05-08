@@ -24,32 +24,107 @@ const fishes = [
 ];
 
 const special = [
-    {name: "Pufferfish", id: "pufferfish", spawnRate: 0.7, dieChance: 0},
-    {name: "Electric Ball", id: "electricBall", spawnRate: 0.7, dieChance: 0},
-    {name: "Octopus", id: "octopus", spawnRate: 0.7, dieChance: 0},
+    {name: "Pufferfish", id: "pufferfish", spawnRate: 0.7, dieChance: 0.003},
+    {name: "Electric Ball", id: "electricBall", spawnRate: 0.7, dieChance: 0.002},
+    {name: "Octopus", id: "octopus", spawnRate: 0.7, dieChance: 0.0005},
     {name: "Piranha", id: "piranha", spawnRate: 0.7, dieChance: 0.0005}
 ];
 
 const aoe = 5;
 const MAX_TOKEN = 10;
 const dmg = 1;
-const target = "ikanBilis";
+const luckyFishRate = 0.001;
+piranhaToken = 100;
 field = [];
 
 function shoot(player, token, target){
-    killMessage = [];
     totalTokens = 0;
     if (token == null || token > MAX_TOKEN){
         token = MAX_TOKEN;
     }
-    for (i = 0; i < token; i++){
-        killList = generateKillList(generateHitList(aoe, target));
-        if (killList.length > 0){
-            for (j = 0; j < killList.length; j++){
-                
+    killMessage = [`Tokens spent: ${token}` , "__You have killed:__"];
+    for (a = 0; a < token; a++){
+        if (0.1 > Math.random()){
+            piranhaToken += getRndInteger(10, 30);
+            if (piranhaToken >= 300){
+                piranhaToken = 300;
             }
         }
-
+        hitList = generateHitList(aoe, target);
+        //console.log(hitList);
+        killList = generateKillList(hitList);
+        //console.log(killList);
+        if (killList.length > 0){
+            extra = [];
+            for (j = 0; j < killList.length; j++){
+                if (field[killList[j]].id == "redWhale" || field[killList[j]].id == "goldWhale"){
+                    whaleToken = (field[killList[j]].id == "redWhale") ? 50 : 150;
+                    loops = (field[killList[j]].id == "redWhale") ? 4 : 6;
+                    for (b = 0; b < loops; b++){
+                        if (0.75 > Math.random()){
+                            whaleToken += 25;
+                        } else {
+                            break;
+                        }
+                    }
+                    if (luckyFishRate > Math.random()){
+                        luckyFishMultiplier = luckyFish();
+                        tokenGet = whaleToken * luckyFishMultiplier;
+                        killMessage.push(`**${field[killList[j]].name}: Lucky Fish x${luckyFishMultiplier} ${tokenGet}x Token**`); 
+                    } else{
+                        tokenGet = whaleToken;
+                        killMessage.push(`**${field[killList[j]].name} ${tokenGet}x Token**`);
+                    }
+                    totalTokens += tokenGet;
+                } else if (field[killList[j]].id == "pufferfish"){
+                    if (0.1 > Math.random()){
+                        extra.push("pufferfish");
+                    } else {
+                        totalTokens += 25;
+                        killMessage.push(`${field[killList[j]].name} 25x Token`);
+                    }
+                } else if (field[killList[j]].id == "octopus"){
+                    extra.push("octopus");
+                } else if (field[killList[j]].id == "electricBall"){
+                    extra.push("electricBall");
+                } else if (field[killList[j]].id == "piranha"){
+                    if (luckyFishRate > Math.random()){
+                        luckyFishMultiplier = luckyFish();
+                        tokenGet = piranhaToken * luckyFishMultiplier;
+                        totalTokens += tokenGet;
+                        killMessage.push(`**${field[killList[j]].name}: Lucky Fish x${luckyFishMultiplier} ${tokenGet}x Token**`);
+                    } else {
+                        totalTokens += piranhaToken;
+                        killMessage.push(`**${field[killList[j]].name} ${piranhaToken}x Token**`);
+                    }
+                    piranhaToken = 100;
+                } else {
+                    if (luckyFishRate > Math.random()){
+                        luckyFishMultiplier = luckyFish();
+                        tokenGet = field[killList[j]].tokenDrop * luckyFishMultiplier;
+                        totalTokens += tokenGet;
+                        killMessage.push(`${field[killList[j]].name}: Lucky Fish x${luckyFishMultiplier} ${tokenGet}x Token`);
+                    } else {
+                        totalTokens += field[killList[j]].tokenDrop;
+                        killMessage.push(`${field[killList[j]].name} ${field[killList[j]].tokenDrop}x Token`);
+                    }
+                }
+            }
+            newField = [];
+            for (k = 0; k < field.length; k++){
+                if (!killList.includes(k)){
+                    newField.push(field[k]);
+                }
+            }
+            field = newField;
+        }
+    }
+    if (killMessage.length == 2){
+        killMessage.push("Nothing......");
+        return killMessage.join("\n");
+    } else {
+        killMessage.push(`**Total: ${totalTokens} Token**`);
+        return killMessage.join("\n");
     }
 }
 
@@ -151,7 +226,7 @@ function generateHitList(aoe, target){
 function generateKillList(hitList){
     killList = [];
     for (i = 0; i < hitList.length; i++){
-        if (field[hitList[i]].dieChance > Math.random()){
+        if (field[hitList[i]].dieChance * dmg > Math.random()){
             killList.push(hitList[i]);
         }
     }
@@ -167,10 +242,27 @@ function fieldMessage(){
     }
     for (i = 0; i < special.length; i++){
         if (field.includes(special[i])){
-            message.push(special[i].name + " x" + count(field, special[i].id));
+            if (special[i].id == "piranha"){
+                message.push(special[i].name + ` [${piranhaToken}]`);
+            } else {
+                message.push(special[i].name + " x" + count(field, special[i].id));
+            }
         }
     }
     return message.join("\n");
+}
+
+function luckyFish(){
+    if (0.2 > Math.random()){
+        if (0.05 > Math.random()){
+            if (0.01 > Math.random()){
+                return 10;
+            }
+            return 5;
+        }
+        return 3;
+    }
+    return 2;
 }
 
 module.exports = { fieldMessage, shoot, refresh};
