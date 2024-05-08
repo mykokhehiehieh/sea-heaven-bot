@@ -36,10 +36,20 @@ const dmg = 1;
 const target = "ikanBilis";
 field = [];
 
-
 function shoot(player, token, target){
+    killMessage = [];
+    totalTokens = 0;
     if (token == null || token > MAX_TOKEN){
         token = MAX_TOKEN;
+    }
+    for (i = 0; i < token; i++){
+        killList = generateKillList(generateHitList(aoe, target));
+        if (killList.length > 0){
+            for (j = 0; j < killList.length; j++){
+                
+            }
+        }
+
     }
 }
 
@@ -53,7 +63,7 @@ function refresh(){
             field.push(fish);
         }
     });
-    console.log(countField(field));
+    console.log(`Field refreshed with ${field.length} fishes`);
 }
 
 function getRndInteger(min, max) {
@@ -139,7 +149,13 @@ function generateHitList(aoe, target){
 }
 
 function generateKillList(hitList){
-    
+    killList = [];
+    for (i = 0; i < hitList.length; i++){
+        if (field[hitList[i]].dieChance > Math.random()){
+            killList.push(hitList[i]);
+        }
+    }
+    return killList;
 }
 
 function fieldMessage(){
